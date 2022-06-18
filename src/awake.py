@@ -7,7 +7,7 @@ import sys
 from datetime import datetime
 
 
-def distance_from_mouse(x, y):
+def distance_of_mouse_from(x, y):
     actual_pos = pyautogui.position()
     return distance.euclidean((x, y), (actual_pos.x, actual_pos.y))
 
@@ -46,31 +46,48 @@ def _progressBar(
     print()
 
 
+def do_loopstuff():  # called from loop to move mouse etc.
+    pyautogui.moveTo(50, i * 4)
+    pyautogui.press("shift")
+    return (50, i * 4)
+
+
 progressBar = partial(_progressBar, prefix="> Moving:", suffix="Complete", length=50)
 
 pyautogui.FAILSAFE = False
 numMin = 3
+sleepDURATION = 60
 TOLERANCE = 55
 
 print(">> Time between moves:", numMin)
 print("\n>> Note: Move mouse away from top-left to skip move")
 
 pyautogui.moveTo(1, 1)
-last_position = (1,1)
-origin = (0,0)
+last_position = (1, 1)
+origin = (0, 0)
+position_before_timeinterval = (0, 0)
 
 while True:
-    if distance_from_mouse(*origin) < TOLERANCE or distance_from_mouse(*last_position) < TOLERANCE:
+    if (
+        distance_of_mouse_from(*origin) < TOLERANCE
+        or distance_of_mouse_from(*last_position) < TOLERANCE
+        or distance_of_mouse_from(*position_before_sleep) == 0
+    ):
         print()
         for i in progressBar(range(0, 200)):
-            pyautogui.moveTo(50, i * 4)
-            last_position = (50, i * 4)
-            pyautogui.press("shift")
+            last_position = do_loopstuff()
 
-            if distance_from_mouse(*origin) > TOLERANCE and distance_from_mouse(*last_position) > TOLERANCE:
+            if (
+                distance_of_mouse_from(*origin) > TOLERANCE
+                and distance_of_mouse_from(*last_position) > TOLERANCE
+            ):
                 print("> ### breaking current move ###    ")
                 break
         print("> Move completed at {}".format(datetime.now().time()))
 
+    # buffer
+    time.sleep(3)
+
+    position_before_sleep = (pyautogui.position().x, pyautogui.position().y)
     for x in range(numMin):
-        time.sleep(60)
+        time.sleep(sleepDURATION)
