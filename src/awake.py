@@ -65,7 +65,7 @@ print("\n>> Note: Move mouse away from top-left to skip move")
 pyautogui.moveTo(1, 1)
 last_position = (1, 1)
 origin = (0, 0)
-position_before_timeinterval = (0, 0)
+position_before_sleep = (0, 0)
 
 while True:
     if (
