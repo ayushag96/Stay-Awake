@@ -3,7 +3,9 @@ from scipy.spatial import distance
 from functools import partial
 
 import time
-import sys
+import math
+import random
+
 from datetime import datetime
 
 
@@ -46,10 +48,24 @@ def _progressBar(
     print()
 
 
-def do_loopstuff():  # called from loop to move mouse etc.
+def move_line(current_pos=None):  # called from loop to move mouse etc.
     pyautogui.moveTo(50, i * 4)
     pyautogui.press("shift")
     return (50, i * 4)
+
+
+def jiggle(current_pos, distance=10, angle=None):
+    def get_random_radians():
+        return math.pi * 2 * random.random()
+
+    if angle is None:
+        angle = get_random_radians()
+    x_shift = abs(int(distance * math.cos(angle)))
+    y_shift = abs(int(distance * math.sin(angle)))
+
+    new_pos = (current_pos[0] + x_shift, current_pos[1] + y_shift)
+    pyautogui.moveTo(*new_pos)
+    return new_pos
 
 
 progressBar = partial(_progressBar, prefix="> Moving:", suffix="Complete", length=50)
@@ -60,27 +76,24 @@ sleepDURATION = 60
 TOLERANCE = 55
 
 print(">> Time between moves:", numMin)
-print("\n>> Note: Move mouse away from top-left to skip move")
+print(">> Note: Move mouse to regain control")
 
-pyautogui.moveTo(1, 1)
-last_position = (1, 1)
+last_position = (pyautogui.position().x, pyautogui.position().y)
+position_before_sleep = last_position
 origin = (0, 0)
-position_before_sleep = (0, 0)
+initial_loop = True
 
 while True:
     if (
-        distance_of_mouse_from(*origin) < TOLERANCE
-        or distance_of_mouse_from(*last_position) < TOLERANCE
-        or distance_of_mouse_from(*position_before_sleep) == 0
+        initial_loop or
+        distance_of_mouse_from(*last_position) < TOLERANCE or
+        distance_of_mouse_from(*position_before_sleep) == 0
     ):
+        initial_loop= False
         print()
         for i in progressBar(range(0, 200)):
-            last_position = do_loopstuff()
-
-            if (
-                distance_of_mouse_from(*origin) > TOLERANCE
-                and distance_of_mouse_from(*last_position) > TOLERANCE
-            ):
+            last_position = jiggle(position_before_sleep)
+            if distance_of_mouse_from(*last_position) > TOLERANCE:
                 print("> ### breaking current move ###    ")
                 break
         print("> Move completed at {}".format(datetime.now().time()))
