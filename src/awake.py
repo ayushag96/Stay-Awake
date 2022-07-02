@@ -48,23 +48,26 @@ def _progressBar(
     print()
 
 
+def _get_random_radians():
+    return math.pi * 2 * random.random()
+
+
 def move_line(current_pos=None):  # called from loop to move mouse etc.
     pyautogui.moveTo(50, i * 4)
     pyautogui.press("shift")
     return (50, i * 4)
 
 
-def jiggle(current_pos, distance=10, angle=None):
-    def get_random_radians():
-        return math.pi * 2 * random.random()
-
+def jiggle(current_pos, distance=50, angle=None):
     if angle is None:
-        angle = get_random_radians()
-    x_shift = abs(int(distance * math.cos(angle)))
-    y_shift = abs(int(distance * math.sin(angle)))
+        angle = _get_random_radians()
 
-    new_pos = (current_pos[0] + x_shift, current_pos[1] + y_shift)
+    x_shift = int(distance * math.cos(angle))
+    y_shift = int(distance * math.sin(angle))
+
+    new_pos = (abs(current_pos[0] + x_shift), abs(current_pos[1] + y_shift))
     pyautogui.moveTo(*new_pos)
+    pyautogui.press("shift")
     return new_pos
 
 
@@ -85,11 +88,11 @@ initial_loop = True
 
 while True:
     if (
-        initial_loop or
-        distance_of_mouse_from(*last_position) < TOLERANCE or
-        distance_of_mouse_from(*position_before_sleep) == 0
+        initial_loop
+        or distance_of_mouse_from(*last_position) < TOLERANCE
+        or distance_of_mouse_from(*position_before_sleep) == 0
     ):
-        initial_loop= False
+        initial_loop = False
         print()
         for i in progressBar(range(0, 200)):
             last_position = jiggle(position_before_sleep)
