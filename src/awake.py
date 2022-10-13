@@ -58,7 +58,7 @@ def move_line(current_pos=None):  # called from loop to move mouse etc.
     return (50, i * 4)
 
 
-def jiggle(current_pos, distance=50, angle=None):
+def jiggle(current_pos, distance=10, angle=None):
     if angle is None:
         angle = _get_random_radians()
 
